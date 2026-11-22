@@ -35,8 +35,23 @@ jobs:
         with:
           node-version: 20
 
+      # Neue Version in tauri.conf.json ohne passenden Tag -> dieser Lauf veröffentlicht das Release.
+      - name: Release nötig?
+        run: |
+          ver=$(python3 -c "import json;print(json.load(open('src-tauri/tauri.conf.json'))['version'])")
+          echo "APP_VERSION=$ver" >> "$GITHUB_ENV"
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ github.ref }}" = "refs/heads/main" ] && ! git rev-parse -q --verify "refs/tags/v$ver" >/dev/null; then
+            echo "DO_RELEASE=1" >> "$GITHUB_ENV"
+            echo "Neues Release: v$ver"
+          fi
+
       - name: Version bestimmen
-        run: echo "LAKUEN_DESCRIBE=$(git describe --tags --long --always --match 'v*')" >> "$GITHUB_ENV"
+        run: |
+          if [ "${DO_RELEASE:-}" = "1" ]; then
+            echo "LAKUEN_DESCRIBE=v${APP_VERSION}-0-g$(git rev-parse --short=7 HEAD)" >> "$GITHUB_ENV"
+          else
+            echo "LAKUEN_DESCRIBE=$(git describe --tags --long --always --match 'v*')" >> "$GITHUB_ENV"
+          fi
 
       - name: Tests
         run: |
@@ -75,6 +90,18 @@ jobs:
           echo "${GITHUB_SHA}" > commit.txt
           git add . && git commit -qm "CI-Log für ${GITHUB_SHA}"
           git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${GITHUB_REPOSITORY}.git" ci-log
+
+      - name: Release aus Versionsnummer veröffentlichen
+        if: env.DO_RELEASE == '1'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.APP_VERSION }}
+          target_commitish: ${{ github.sha }}
+          name: LakuenSuite v${{ env.APP_VERSION }}
+          body_path: release-notes/v${{ env.APP_VERSION }}.md
+          files: |
+            out/LakuenSuite-x86_64.AppImage
+            out/LakuenSuite-x86_64.AppImage.sha256
 
       - name: Dateien an bestehendes Release hängen
         if: github.event_name == 'release'

@@ -63,3 +63,7 @@ Lokal: `npm install && npx tauri build --bundles appimage` (Rust, Node und die T
 ---
 
 Erstellt von Dominic Lesina x Claude
+
+### Release veröffentlichen
+
+Version in `src-tauri/tauri.conf.json` (und `Cargo.toml`, `package.json`) erhöhen, Notizen in `release-notes/v<version>.md` schreiben, auf `main` pushen. Gibt es zu der Version noch keinen Tag, legt die CI Tag und Release samt AppImage an.
