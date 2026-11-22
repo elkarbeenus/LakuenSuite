@@ -414,7 +414,7 @@ impl Drop for BusyGuard<'_> {
     }
 }
 
-fn begin(suite: &Suite, key: &str) -> Result<(BusyGuard<'_>, Arc<AtomicBool>), String> {
+fn begin<'a>(suite: &'a Suite, key: &str) -> Result<(BusyGuard<'a>, Arc<AtomicBool>), String> {
     {
         let mut b = suite.busy.lock().unwrap();
         if b.iter().any(|k| k == key) {
