@@ -3,3 +3,17 @@ src-tauri/target/
 src-tauri/gen/
 *.AppImage
 *.part
+
+# Geheimnisse – niemals einchecken
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+secrets.json
+settings.json
+credentials*.json
+.npmrc
