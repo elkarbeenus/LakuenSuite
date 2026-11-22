@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="nacht">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LakuenSuite</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <img src="logo.png" alt="" class="brand-logo" />
+      <div>
+        <div class="brand-name">LakuenSuite</div>
+        <button class="brand-version" id="versionChip" title="Über LakuenSuite">…</button>
+      </div>
+    </div>
+    <div class="search">
+      <svg viewBox="0 0 24 24" class="ico"><path d="M10 2a8 8 0 0 1 6.32 12.9l5.39 5.4-1.41 1.4-5.4-5.38A8 8 0 1 1 10 2zm0 2a6 6 0 1 0 0 12 6 6 0 0 0 0-12z"/></svg>
+      <input id="search" type="search" placeholder="Apps durchsuchen …  (Strg+F)" autocomplete="off" spellcheck="false" />
+    </div>
+    <div class="top-actions">
+      <select id="sort" title="Sortierung">
+        <option value="status">Nach Status</option>
+        <option value="name">Nach Name</option>
+        <option value="updated">Zuletzt aktualisiert</option>
+        <option value="launched">Zuletzt gestartet</option>
+      </select>
+      <button class="icon-btn" id="viewBtn" title="Ansicht wechseln">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm10 0h8v8h-8z"/></svg>
+      </button>
+      <button class="icon-btn" id="refreshBtn" title="Aktualisieren (F5)">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M17.65 6.35A8 8 0 1 0 19.73 14h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      </button>
+      <button class="icon-btn" id="settingsBtn" title="Einstellungen">
+        <svg viewBox="0 0 24 24" class="ico"><path d="M19.14 12.94a7.07 7.07 0 0 0 0-1.88l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.59.24-1.13.55-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22L2.67 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.07 7.07 0 0 0 0 1.88l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.3.6.22l2.39-.96c.49.39 1.03.7 1.62.94l.36 2.54c.05.24.26.42.5.42h3.84c.25 0 .45-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div id="selfBanner" class="banner hidden">
+    <div class="banner-text">
+      <strong id="selfBannerTitle">Update für LakuenSuite</strong>
+      <span id="selfBannerSub">Lädt die neue Version, prüft sie und startet neu. Einstellungen und Apps bleiben erhalten.</span>
+      <div class="progress hidden" id="selfProgress"><div class="bar"></div></div>
+    </div>
+    <div class="banner-actions">
+      <button class="btn ghost" id="selfNotesBtn">Was ist neu?</button>
+      <button class="btn primary" id="selfUpdateBtn">Jetzt aktualisieren</button>
+    </div>
+  </div>
+
+  <div id="notice" class="notice hidden"></div>
+
+  <nav class="filters" id="filters">
+    <button class="chip active" data-filter="all">Alle <span class="count" data-count="all"></span></button>
+    <button class="chip" data-filter="installed">Installiert <span class="count" data-count="installed"></span></button>
+    <button class="chip" data-filter="updates">Updates <span class="count" data-count="updates"></span></button>
+    <button class="chip" data-filter="available">Verfügbar <span class="count" data-count="available"></span></button>
+    <button class="chip" data-filter="favorites">★ Favoriten <span class="count" data-count="favorites"></span></button>
+    <button class="chip" data-filter="norelease">Ohne Release <span class="count" data-count="norelease"></span></button>
+    <div class="spacer"></div>
+    <button class="btn primary small hidden" id="updateAllBtn">Alle aktualisieren</button>
+  </nav>
+
+  <main id="grid" class="grid" aria-live="polite"></main>
+  <div id="empty" class="empty hidden"></div>
+
+  <footer class="statusbar">
+    <span id="statusLeft">Lade …</span>
+    <span id="statusRight"></span>
+  </footer>
+
+  <!-- App-Popup -->
+  <div class="overlay hidden" id="appModal" role="dialog" aria-modal="true">
+    <div class="modal">
+      <button class="modal-close" data-close title="Schließen (Esc)">✕</button>
+      <div class="m-head">
+        <div class="m-icon" id="mIcon"></div>
+        <div class="m-title">
+          <h2 id="mName"></h2>
+          <div class="m-badges" id="mBadges"></div>
+        </div>
+      </div>
+      <p class="m-short" id="mShort"></p>
+      <p class="m-readme" id="mReadme"></p>
+      <div class="progress big hidden" id="mProgress"><div class="bar"></div></div>
+      <div class="m-progress-text hidden" id="mProgressText"></div>
+      <div class="m-actions">
+        <button class="btn primary big" id="mPrimary"></button>
+        <button class="btn danger hidden" id="mCancel">Abbrechen</button>
+        <button class="btn ghost" id="mGithub">Auf GitHub</button>
+        <div class="menu-wrap">
+          <button class="btn ghost" id="mMoreBtn">Mehr ▾</button>
+          <div class="menu hidden" id="mMenu">
+            <button data-act="folder">Ordner öffnen</button>
+            <button data-act="rollback" id="mRollback">Vorherige Version wiederherstellen</button>
+            <button data-act="reinstall">Neu installieren</button>
+            <button data-act="hide">Aus der Liste ausblenden</button>
+            <button data-act="uninstall" class="danger-text">Deinstallieren</button>
+          </div>
+        </div>
+      </div>
+      <div class="m-stats" id="mStats"></div>
+      <details class="m-notes" id="mNotesWrap">
+        <summary id="mNotesTitle">Was ist neu</summary>
+        <div class="md" id="mNotes"></div>
+      </details>
+    </div>
+  </div>
+
+  <!-- Einstellungen -->
+  <div class="overlay hidden" id="settingsModal" role="dialog" aria-modal="true">
+    <div class="modal wide">
+      <button class="modal-close" data-close title="Schließen (Esc)">✕</button>
+      <h2>Einstellungen</h2>
+      <section>
+        <h3>Aussehen</h3>
+        <div class="themes" id="themes"></div>
+      </section>
+      <section>
+        <h3>Updates</h3>
+        <label class="toggle"><input type="checkbox" id="sCheck" /><span></span>Beim Start nach Updates suchen</label>
+        <label class="toggle"><input type="checkbox" id="sAutoApps" /><span></span>Installierte Apps automatisch aktualisieren</label>
+        <label class="toggle"><input type="checkbox" id="sAutoSelf" /><span></span>LakuenSuite selbst automatisch aktualisieren (sonst nur Hinweis mit Knopf)</label>
+        <label class="row">Alle
+          <select id="sRefresh">
+            <option value="0">nie</option>
+            <option value="15">15</option>
+            <option value="30">30</option>
+            <option value="60">60</option>
+            <option value="180">180</option>
+          </select>
+          Minuten im Hintergrund prüfen</label>
+      </section>
+      <section>
+        <h3>Installation</h3>
+        <label class="field">Installationsordner
+          <div class="field-row">
+            <input type="text" id="sDir" spellcheck="false" />
+            <button class="btn ghost small" id="sDirOpen">Öffnen</button>
+            <button class="btn ghost small" id="sDirReset">Standard</button>
+          </div>
+        </label>
+        <label class="toggle"><input type="checkbox" id="sDesktop" /><span></span>Apps ins Startmenü eintragen</label>
+        <label class="toggle"><input type="checkbox" id="sPrev" /><span></span>Vorherige Version aufheben (zum Zurücksetzen)</label>
+        <button class="btn ghost small" id="sShortcut">LakuenSuite selbst ins Startmenü eintragen</button>
+      </section>
+      <section>
+        <h3>Liste</h3>
+        <label class="toggle"><input type="checkbox" id="sForks" /><span></span>Forks anzeigen</label>
+        <label class="toggle"><input type="checkbox" id="sArchived" /><span></span>Archivierte Repos anzeigen</label>
+        <div id="sHidden" class="hidden-list"></div>
+      </section>
+      <section>
+        <h3>GitHub</h3>
+        <label class="field">Token (optional)
+          <div class="field-row">
+            <input type="password" id="sToken" placeholder="ghp_… oder github_pat_…" spellcheck="false" autocomplete="off" />
+            <button class="btn ghost small" id="sTokenShow">Zeigen</button>
+          </div>
+        </label>
+        <p class="hint">Ohne Token erlaubt GitHub 60 Abfragen pro Stunde – das reicht meist, weil unveränderte Antworten nicht zählen. Mit Token sind es 5000, und private Repos werden mit angezeigt. Der Token bleibt nur auf diesem Rechner.
+          <a href="#" data-href="https://github.com/settings/personal-access-tokens/new">Token erstellen</a></p>
+      </section>
+      <section>
+        <h3>Über</h3>
+        <p id="aboutText"></p>
+        <div class="field-row">
+          <button class="btn ghost small" id="sTutorial">Einführung erneut zeigen</button>
+          <button class="btn ghost small" id="sRepo">LakuenSuite auf GitHub</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Bestätigung -->
+  <div class="overlay hidden" id="confirmModal" role="dialog" aria-modal="true">
+    <div class="modal small">
+      <h3 id="cTitle"></h3>
+      <p id="cText"></p>
+      <div class="m-actions end">
+        <button class="btn ghost" id="cNo">Abbrechen</button>
+        <button class="btn danger" id="cYes">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Release-Notizen der Suite -->
+  <div class="overlay hidden" id="notesModal" role="dialog" aria-modal="true">
+    <div class="modal">
+      <button class="modal-close" data-close>✕</button>
+      <h2 id="nTitle"></h2>
+      <div class="md" id="nBody"></div>
+    </div>
+  </div>
+
+  <!-- Einführung -->
+  <div class="overlay hidden" id="tutorial" role="dialog" aria-modal="true">
+    <div class="modal small tutorial">
+      <div class="tut-step" data-step="0">
+        <img src="logo.png" alt="" class="tut-logo" />
+        <h2>Willkommen bei LakuenSuite</h2>
+        <p>Hier siehst du alle deine Apps von GitHub an einem Ort – installieren, aktualisieren und starten mit einem Klick.</p>
+      </div>
+      <div class="tut-step hidden" data-step="1">
+        <h2>Kacheln</h2>
+        <p><b>Farbige Kacheln</b> haben ein Release – klick drauf für Beschreibung, Download und Start.<br/><b>Ausgegraute Kacheln</b> sind Repos ohne Release; sie werden aktiv, sobald du eins veröffentlichst.</p>
+      </div>
+      <div class="tut-step hidden" data-step="2">
+        <h2>Immer aktuell</h2>
+        <p>LakuenSuite prüft beim Start, ob es neue Versionen gibt, aktualisiert deine Apps (abschaltbar) und sich selbst per Knopfdruck. Jeder Download wird per SHA-256 geprüft.</p>
+        <p class="hint">Tipps: <kbd>Strg</kbd>+<kbd>F</kbd> sucht, <kbd>F5</kbd> aktualisiert, Pfeiltasten + <kbd>Enter</kbd> funktionieren auch mit dem Controller.</p>
+      </div>
+      <div class="m-actions end">
+        <button class="btn ghost" id="tSkip">Überspringen</button>
+        <button class="btn primary" id="tNext">Weiter</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toasts" class="toasts"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
